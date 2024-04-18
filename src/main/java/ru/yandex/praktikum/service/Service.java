@@ -10,7 +10,7 @@ public class Service {
     public final static boolean NEED_DETAIL_LOG = true;
 
 
-    protected RequestSpecification getBaseSpecification() {
+    public static RequestSpecification getBaseSpecification() {
         return new RequestSpecBuilder()
                 .setBaseUri(BASE_URL)
                 .setContentType(ContentType.JSON)

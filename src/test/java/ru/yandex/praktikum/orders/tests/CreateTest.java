@@ -1,9 +1,7 @@
-package ru.yandex.praktikum.orders;
+package ru.yandex.praktikum.orders.tests;
 
 import io.qameta.allure.Description;
-import io.qameta.allure.Step;
 import io.qameta.allure.junit4.DisplayName;
-import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import org.junit.After;
 import org.junit.Before;
@@ -12,20 +10,20 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import ru.yandex.praktikum.order.Order;
 import ru.yandex.praktikum.order.OrderApiResponse;
+import ru.yandex.praktikum.orders.steps.OrderSteps;
 import ru.yandex.praktikum.service.Service;
 
 import java.util.List;
 
-import static org.apache.http.HttpStatus.SC_CREATED;
-import static org.hamcrest.Matchers.notNullValue;
 
 @RunWith(Parameterized.class)
-public class CreateTest {
+public class CreateTest extends Service {
 
     private final List<String> color;
     private final OrderApiResponse orderApi = new OrderApiResponse();
     private Order order;
     private Response response;
+    private final OrderSteps orderSteps = new OrderSteps();
 
     public CreateTest(List<String> color) {
         this.color = color;
@@ -43,7 +41,6 @@ public class CreateTest {
 
     @Before
     public void setUp() {
-        RestAssured.baseURI = Service.BASE_URL;
         order = new Order("Вадим", "Бражников", "Летчика Ульянина, 7", "4", "+7 977 403 84 22", 3, "2024-12-12", "Покатушки", color);
     }
 
@@ -52,8 +49,7 @@ public class CreateTest {
         try {
             String orderId = response.then().extract().path("track").toString();
             orderApi.cancelOrder(orderId);
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             System.out.println(e.getMessage());
         }
     }
@@ -62,32 +58,8 @@ public class CreateTest {
     @DisplayName("Создание заказа с разными цветами")
     @Description("Проверка, что можно создать заказ с переданными наборами цветов (в параметрах)")
     public void paramCreateOrderTest() {
-        response = orderCreate(order);
-        compareTrackNotNull(response);
-    }
-
-    // Метод для шага "Создание заказа":
-    @Step("Create order")
-    public Response orderCreate(Order order){
-        response = orderApi.createOrder(order);
-        printResponseBodyToConsole("Создание заказа: ", response, Service.NEED_DETAIL_LOG);
-        return response;
-    }
-
-    @Step("Compare track is not null")
-    public void compareTrackNotNull(Response response){
-        response
-                .then()
-                .assertThat()
-                .statusCode(SC_CREATED)
-                .and()
-                .body("track", notNullValue());
-    }
-
-    @Step("Print response body to console")
-    public void printResponseBodyToConsole(String headerText, Response response, boolean detailedLog){
-        if (detailedLog)
-            System.out.println(headerText + response.body().asString());
+        response = orderSteps.orderCreate(order);
+        orderSteps.compareTrackNotNull(response);
     }
 
 }
